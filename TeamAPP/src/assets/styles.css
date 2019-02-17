@@ -1,0 +1,7 @@
+body {
+  margin: 0px;
+  background-color: #f3f0f0;
+}
+#form-dialog-title::first-letter {
+  text-transform: uppercase;
+}

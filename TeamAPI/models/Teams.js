@@ -14,10 +14,14 @@ const TeamSchema = new Schema({
     type: String,
     required: true
   },
-  players: [{ 
+  nextGame: {
+    type: String,
+  },
+  players: [{
+    playerid: String,
     name: String, 
-    payment: Boolean,
-    owePayment:Number
+    playing: Boolean,
+    payment: Number
   }],
 });
 
