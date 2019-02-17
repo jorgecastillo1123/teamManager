@@ -36,5 +36,5 @@ app
   .delete(teamController.deletePlayer);
 
 app.listen(port, () => {
-  console.log(`Server running at http://localhost:${port}`);
+  console.log(`Server running`);
 });
