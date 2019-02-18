@@ -97,6 +97,8 @@ class Teams extends Component {
       teamName: selectedTeam.teamName,
       leagueName: selectedTeam.leagueName,
       day: selectedTeam.day,
+      nextGame: selectedTeam.nextGame,
+      time: selectedTeam.time,
     }).then(response => {
       const updateTeam = teams.map(team => {
         const newTeam = Object.assign({}, team);
@@ -167,6 +169,34 @@ class Teams extends Component {
                 fullWidth
                 value={selectedTeam.teamName}
                 onChange={this.handleChange(selectedTeam.teamName)}
+                margin="normal"
+                variant="outlined"
+                InputLabelProps={{
+                  shrink: true,
+                }}
+              />
+              <TextField
+                id="outlined-full-width"
+                label="Next Game"
+                name="nextGame"
+                placeholder="Tuesday"
+                fullWidth
+                value={selectedTeam.nextGame}
+                onChange={this.handleChange(selectedTeam.nextGame)}
+                margin="normal"
+                variant="outlined"
+                InputLabelProps={{
+                  shrink: true,
+                }}
+              />
+              <TextField
+                id="outlined-full-width"
+                label="Game Time"
+                name="time"
+                placeholder="Maybe 7:00pm"
+                fullWidth
+                value={selectedTeam.time}
+                onChange={this.handleChange(selectedTeam.time)}
                 margin="normal"
                 variant="outlined"
                 InputLabelProps={{

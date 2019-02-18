@@ -17,6 +17,9 @@ const TeamSchema = new Schema({
   nextGame: {
     type: String,
   },
+  time: {
+    type: String,
+  },
   players: [{
     playerid: String,
     name: String, 

@@ -61,7 +61,7 @@ const styles = theme => ({
   },
   teamTitle : {
     position: 'relative',
-    bottom: 200,
+    bottom: 240,
     margin: '0 auto',
     color: '#ffffff7a',
     fontWeight: 'bold',
@@ -72,7 +72,7 @@ const styles = theme => ({
   },
   teamSubtitle : {
     position: 'relative',
-    bottom: 205,
+    bottom: 233,
     margin: '0 auto',
     color: '#ffffff7a',
     fontWeight: 'bold',
