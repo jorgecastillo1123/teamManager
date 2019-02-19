@@ -24,6 +24,7 @@ import Dialog from '@material-ui/core/Dialog';
 import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
 import DialogTitle from '@material-ui/core/DialogTitle';
+import Badge from '@material-ui/core/Badge';
 import host from '../host.json';
 
 
@@ -81,6 +82,17 @@ const styles = theme => ({
       bottom: 185,
     },
   },
+  teamTotal : {
+    position: 'relative',
+    bottom: 215,
+    margin: '0 auto',
+    color: '#fff',
+    fontWeight: 'bold',
+    [theme.breakpoints.down('sm')]: {
+      fontSize: 30,
+      bottom: 162,
+    },
+  },
   resposiveGrid:  {
     [theme.breakpoints.down('sm')]: {
       width: '100%',
@@ -94,7 +106,8 @@ class Team extends Component {
     this.state = {
       open: false,
       selectedPlayer: {},
-      action: ''
+      action: '',
+      count: 0
     };
   }
 
@@ -102,8 +115,10 @@ class Team extends Component {
     const teamID = this.props.match.params.id;
     axios.get(`${host.url}/team/${teamID}`)
     .then(response => {
+      const count = this.getCount(response.data.players);
       this.setState({   
           team: response.data,
+          count
       })
     }).catch((err)=>{
       console.error(err);
@@ -121,8 +136,12 @@ class Team extends Component {
       return newPlayer;
     });
     team.players = updatePlayer;
+
+    const count = this.getCount(team.players);
+
     this.setState({   
       team,
+      count
     });
 
     const selectedPlayer = team.players.filter(obj => {
@@ -207,8 +226,12 @@ class Team extends Component {
     }))
   };
 
+  getCount = (players) => {
+    return players.filter((obj) => obj.playing === true).length;
+  }
+
   render () {
-    const { team, selectedPlayer, action } = this.state;
+    const { team, selectedPlayer, action, count } = this.state;
     const { classes } = this.props;
     return (
       <React.Fragment>
@@ -217,15 +240,18 @@ class Team extends Component {
           team ? 
             <Grid container>
               <div className={classes.titleContainer}>
-              <Typography component="h2" variant="h1" gutterBottom className={classes.teamTitle}>
-               {team.teamName} 
-              </Typography>
-              <Typography component="h2" variant="h3" gutterBottom className={classes.teamSubtitle}>
-               {team.nextGame}
-              </Typography>
-              <Typography component="h2" variant="h4" gutterBottom className={classes.teamSubtitle}>
-               {team.time}
-              </Typography>
+                <Typography component="h2" variant="h1" gutterBottom className={classes.teamTitle}>
+                  {team.teamName} 
+                </Typography>
+                <Typography component="h2" variant="h3" gutterBottom className={classes.teamSubtitle}>
+                  {team.nextGame}
+                </Typography>
+                <Typography component="h2" variant="h4" gutterBottom className={classes.teamSubtitle}>
+                  {team.time}
+                </Typography>
+                <Badge className={classes.teamTotal} badgeContent={count} color="secondary" showZero={true}>
+                  <PlayingIcon />
+                </Badge>
               </div>
               <Fab color="primary" aria-label="Edit" className={classes.editButton} 
                    onClick={()=>{this.openModal('editPlayer')}}>
