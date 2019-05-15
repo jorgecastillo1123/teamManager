@@ -1,2 +1,8 @@
 node_modules/
 TeamAPP/build/
+
+\.DS_Store
+
+TeamAPP/src/assets/schedule\.json
+
+TeamAPP/src/host\.json

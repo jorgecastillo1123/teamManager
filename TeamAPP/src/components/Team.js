@@ -25,6 +25,7 @@ import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
 import DialogTitle from '@material-ui/core/DialogTitle';
 import Badge from '@material-ui/core/Badge';
+import Chip from '@material-ui/core/Chip';
 import host from '../host.json';
 
 
@@ -44,6 +45,10 @@ const styles = theme => ({
   },
   avatarPasive: {
     backgroundColor: '#de1717!important'
+  },
+  noPayment: {
+    color: '#ff0000',
+    fontWeight: 600
   },
   editButton: {
     position: 'absolute',
@@ -85,7 +90,7 @@ const styles = theme => ({
   teamTotal : {
     position: 'relative',
     bottom: 215,
-    margin: '0 auto',
+    margin: '0 25px',
     color: '#fff',
     fontWeight: 'bold',
     [theme.breakpoints.down('sm')]: {
@@ -93,13 +98,21 @@ const styles = theme => ({
       bottom: 162,
     },
   },
+  badge :  {
+    position: 'relative',
+    top: '-164px',
+    padding: '0 10px',
+    backgroundColor: '#f50057',
+    color: '#fff',
+    fontSize: 16,
+    margin: '0 10px'
+  },
   resposiveGrid:  {
     [theme.breakpoints.down('sm')]: {
       width: '100%',
     },
   },
 });
-
 class Team extends Component {
   constructor(props) {
     super();
@@ -107,7 +120,8 @@ class Team extends Component {
       open: false,
       selectedPlayer: {},
       action: '',
-      count: 0
+      count: 0,
+      sum: 0
     };
   }
 
@@ -116,9 +130,16 @@ class Team extends Component {
     axios.get(`${host.url}/team/${teamID}`)
     .then(response => {
       const count = this.getCount(response.data.players);
+
+      let paid = 0;
+      for (let index = 0; index < response.data.players.length; index++) {
+        paid += +response.data.players[index].payment;
+      }
+      console.log(paid)
       this.setState({   
           team: response.data,
-          count
+          count,
+          sum: paid
       })
     }).catch((err)=>{
       console.error(err);
@@ -205,7 +226,6 @@ class Team extends Component {
       playing: selectedPlayer.playing,
       payment: selectedPlayer.payment,
     }).then(response => {
-      console.log(response.data.players)
       this.setState({   
           team: response.data,
           open: false
@@ -230,9 +250,11 @@ class Team extends Component {
     return players.filter((obj) => obj.playing === true).length;
   }
 
+  
   render () {
-    const { team, selectedPlayer, action, count } = this.state;
+    const { team, selectedPlayer, action, count, sum} = this.state;
     const { classes } = this.props;
+
     return (
       <React.Fragment>
         <Header />
@@ -252,6 +274,7 @@ class Team extends Component {
                 <Badge className={classes.teamTotal} badgeContent={count} color="secondary" showZero={true}>
                   <PlayingIcon />
                 </Badge>
+                <Chip label={`$${sum}`} className={classes.badge} />
               </div>
               <Fab color="primary" aria-label="Edit" className={classes.editButton} 
                    onClick={()=>{this.openModal('editPlayer')}}>
@@ -269,7 +292,10 @@ class Team extends Component {
                       </Avatar>
                       </ListItemAvatar>
                       <ListItemText primary={player.name} 
-                      secondary={'Paid $' + player.payment }
+                      secondary={
+                        player.payment >= 40 ? <span>Paid ${player.payment}</span>  : 
+                        <span className={classes.noPayment}>Paid ${player.payment}</span>
+                      }
                       />
                       <ListItemSecondaryAction>
                         <FormControlLabel
@@ -280,7 +306,7 @@ class Team extends Component {
                               color="primary"
                             />
                           }
-                          label="Playing Today"
+                          label="Playing"
                         />
                       </ListItemSecondaryAction>
                     </ListItem>

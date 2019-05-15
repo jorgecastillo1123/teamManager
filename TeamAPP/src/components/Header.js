@@ -74,17 +74,22 @@ class Header extends Component {
   };
 
   render () {
-    const { open,left } = this.state;
+    const { left } = this.state;
     const { classes } = this.props;
+    // const isHomepage = window.location.pathname === '/' || false;
+    const isHomepage = true;
 
     return (
       <React.Fragment>
       <div className={classes.header}>
-        <IconButton className={classes.menuButton} 
-                    aria-label="Menu" 
-                    onClick={()=>{this.toggleDrawer(true)}}>
+        { 
+          !isHomepage ? 
+          <IconButton className={classes.menuButton} 
+                aria-label="Menu" 
+                onClick={()=>{this.toggleDrawer(true)}}>
             <MenuIcon />
-        </IconButton>
+          </IconButton> : ''
+        }
         <Drawer anchor="right" open={left} onClose={()=>{this.toggleDrawer(false)}}>
           <div
             tabIndex={0}
