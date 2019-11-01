@@ -26,13 +26,13 @@ import DialogContent from '@material-ui/core/DialogContent';
 import DialogTitle from '@material-ui/core/DialogTitle';
 import Badge from '@material-ui/core/Badge';
 import Chip from '@material-ui/core/Chip';
-import host from '../host.json';
+import host from '../config/host.json';
 
 
 const styles = theme => ({
   paperRoot: {
     margin: '0 50px',
-    bottom: 200,
+    bottom: 170,
     position: 'relative',
     [theme.breakpoints.down('sm')]: {
       margin: '0 20px',
@@ -52,11 +52,12 @@ const styles = theme => ({
   },
   editButton: {
     position: 'absolute',
-    top: 245,
+    backgroundColor: '#f6d50f',
+    top: 198,
     right: 30,
     zIndex:1,
     [theme.breakpoints.down('sm')]: {
-      top: 170,
+      top: 157,
       right: 3,
     },
   },
@@ -69,10 +70,11 @@ const styles = theme => ({
     position: 'relative',
     bottom: 240,
     margin: '0 auto',
-    color: '#ffffff7a',
+    color: '#fff',
     fontWeight: 'bold',
+    fontSize: 30,
     [theme.breakpoints.down('sm')]: {
-      fontSize: 40,
+      fontSize: 20,
       bottom: 200,
     },
   },
@@ -80,7 +82,7 @@ const styles = theme => ({
     position: 'relative',
     bottom: 233,
     margin: '0 auto',
-    color: '#ffffff7a',
+    color: '#fff',
     fontWeight: 'bold',
     [theme.breakpoints.down('sm')]: {
       fontSize: 30,
@@ -96,16 +98,30 @@ const styles = theme => ({
     [theme.breakpoints.down('sm')]: {
       fontSize: 30,
       bottom: 162,
+      right: 116
     },
   },
   badge :  {
     position: 'relative',
-    top: '-164px',
+    top: '-177px',
+    left: 415,
     padding: '0 10px',
-    backgroundColor: '#f50057',
+    backgroundColor: '#00000036',
     color: '#fff',
     fontSize: 16,
-    margin: '0 10px'
+    margin: '0 10px',
+    [theme.breakpoints.down('sm')]: {
+      left: 65,
+      top: '-155px',
+    },
+  },
+  countBadge :  {
+    backgroundColor: '#f6d50e',
+    color: '#000',
+    padding: '20px 0',
+    fontSize: 16,
+    width: 100,
+    margin: '0 -50px'
   },
   resposiveGrid:  {
     [theme.breakpoints.down('sm')]: {
@@ -130,15 +146,16 @@ class Team extends Component {
     axios.get(`${host.url}/team/${teamID}`)
     .then(response => {
       const count = this.getCount(response.data.players);
+      const totalCount = this.getTotalCount(response.data.players);
 
       let paid = 0;
       for (let index = 0; index < response.data.players.length; index++) {
         paid += +response.data.players[index].payment;
-      }
-      console.log(paid)
+      }      
       this.setState({   
           team: response.data,
           count,
+          totalCount,
           sum: paid
       })
     }).catch((err)=>{
@@ -177,7 +194,7 @@ class Team extends Component {
     });
   };
 
-  openModal = (type,oData) => {
+  openModal = (type, oData) => {
     if (oData == null){
       oData = {
         name: '',
@@ -195,7 +212,6 @@ class Team extends Component {
         action: 'edit',
        });
     }
-
   }
 
   handleClose = () => {
@@ -250,9 +266,13 @@ class Team extends Component {
     return players.filter((obj) => obj.playing === true).length;
   }
 
+  getTotalCount = (players) => {
+    return players.length;
+  }
+
   
   render () {
-    const { team, selectedPlayer, action, count, sum} = this.state;
+    const { team, selectedPlayer, action, count, sum, totalCount } = this.state;
     const { classes } = this.props;
 
     return (
@@ -265,18 +285,18 @@ class Team extends Component {
                 <Typography component="h2" variant="h1" gutterBottom className={classes.teamTitle}>
                   {team.teamName} 
                 </Typography>
-                <Typography component="h2" variant="h3" gutterBottom className={classes.teamSubtitle}>
-                  {team.nextGame}
-                </Typography>
                 <Typography component="h2" variant="h4" gutterBottom className={classes.teamSubtitle}>
                   {team.time}
                 </Typography>
-                <Badge className={classes.teamTotal} badgeContent={count} color="secondary" showZero={true}>
+                <Badge className={classes.teamTotal} badgeContent={`${count} of ${totalCount}`} color="primary" showZero={true}
+                  classes={{
+                    badge: classes.countBadge, 
+                  }}>
                   <PlayingIcon />
                 </Badge>
                 <Chip label={`$${sum}`} className={classes.badge} />
               </div>
-              <Fab color="primary" aria-label="Edit" className={classes.editButton} 
+              <Fab aria-label="Edit" className={classes.editButton} 
                    onClick={()=>{this.openModal('editPlayer')}}>
                 <AddIcon />
               </Fab>

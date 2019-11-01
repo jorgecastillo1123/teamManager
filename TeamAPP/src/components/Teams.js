@@ -16,10 +16,10 @@ import Dialog from '@material-ui/core/Dialog';
 import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
 import DialogTitle from '@material-ui/core/DialogTitle';
-import soccersLogo from '../assets/soccers.jpg'
-import host from '../host.json';
+import Logo from '../assets/logo.png'
+import host from '../config/host.json';
 
-const styles = theme => ({
+const styles = {
   content: {
     position: 'relative',
     bottom: 100
@@ -46,10 +46,10 @@ const styles = theme => ({
   editButton: {
     width: '100%'
   }
-});
+};
 
 class Teams extends Component {
-  constructor(props) {
+  constructor() {
     super();
     this.state = {
       teams: [],
@@ -131,7 +131,7 @@ class Teams extends Component {
                     <Link to={`/team/${team._id}`} className={classes.noLink}>
                         <CardMedia
                           className={classes.media}
-                          image= {soccersLogo}
+                          image= {Logo}
                           title={team.leagueName}/>
                         <CardContent className={classes.cardContent}>
                           <Typography gutterBottom variant="h5" component="h2" className={classes.boldText}>
