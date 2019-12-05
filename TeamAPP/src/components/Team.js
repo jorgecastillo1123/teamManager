@@ -142,7 +142,7 @@ class Team extends Component {
   }
 
   componentDidMount () {
-    const teamID = this.props.match.params.id;
+    const teamID = '5c68961d9400a91f731146e8';
     axios.get(`${host.url}/team/${teamID}`)
     .then(response => {
       const count = this.getCount(response.data.players);
