@@ -1,27 +1,21 @@
 const express = require("express");
-const bodyParser = require("body-parser");
-const teamController = require("./controllers/TeamsController");
+const teamController = require("./controllers/TeamController");
 
-// db instance connection
 require("./config/db");
 
 const app = express();
 
 const port = process.env.PORT || 5000;
-app.use(bodyParser.urlencoded({ extended: true }));
-app.use(bodyParser.json());
-app.use(function(req, res, next) {
+app.use(express.urlencoded({ extended: true }));
+app.use(express.json());
+app.use(express.text());
+
+app.use(function (req, res, next) {
   res.header("Access-Control-Allow-Origin", "*");
   res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
   res.header('Access-Control-Allow-Methods', 'PUT, POST, GET, DELETE, OPTIONS');
-     next();
+  next();
 });
-
-// API ENDPOINTS
-app
-  .route("/teams")
-  .get(teamController.listAllTeams)
-  .post(teamController.createNewTeam);
 
 app
   .route("/team/:teamid")
@@ -36,5 +30,5 @@ app
   .delete(teamController.deletePlayer);
 
 app.listen(port, () => {
-  console.log(`Server running`);
+  console.log(`Server running in port ${port}`);
 });

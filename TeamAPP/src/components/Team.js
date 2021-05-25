@@ -1,8 +1,6 @@
-import React, { Component } from 'react';
-import PropTypes from 'prop-types';
+import { useState, useEffect } from 'react';
 import { withStyles } from '@material-ui/core/styles';
 import axios from 'axios'
-import Header from './Header.js';
 import Grid from '@material-ui/core/Grid';
 import Paper from '@material-ui/core/Paper';
 import List from '@material-ui/core/List';
@@ -13,8 +11,9 @@ import ListItemAvatar from '@material-ui/core/ListItemAvatar';
 import Checkbox from '@material-ui/core/Checkbox';
 import Avatar from '@material-ui/core/Avatar';
 import PlayingIcon from '@material-ui/icons/DirectionsRun';
-import LinearProgress from '@material-ui/core/LinearProgress';
+import Delete from '@material-ui/icons/Delete';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
+import CircularProgress from '@material-ui/core/CircularProgress';
 import Fab from '@material-ui/core/Fab';
 import AddIcon from '@material-ui/icons/Add';
 import Typography from '@material-ui/core/Typography';
@@ -30,15 +29,21 @@ import host from '../config/host.json';
 
 
 const styles = theme => ({
+  header: {
+    flexGrow: 1,
+    height: 200,
+    background: `linear-gradient(0deg, rgb(0 0 0) 0%, rgb(12 88 142) 100%)`,
+  },
   paperRoot: {
-    margin: '0 50px',
-    bottom: 170,
+    margin: '0 20px',
+    bottom: 0,
     position: 'relative',
-    [theme.breakpoints.down('sm')]: {
-      margin: '0 20px',
-      bottom: 150,
-      position: 'relative',
-    },
+  },
+  loader: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    height: 200,
   },
   avatarActive: {
     backgroundColor: '#17944a!important'
@@ -52,140 +57,131 @@ const styles = theme => ({
   },
   editButton: {
     position: 'absolute',
-    backgroundColor: '#f6d50f',
-    top: 198,
-    right: 30,
-    zIndex:1,
-    [theme.breakpoints.down('sm')]: {
-      top: 157,
-      right: 3,
-    },
+    backgroundColor: '#ececec',
+    top: 173,
+    right: 20,
+    zIndex: 1,
   },
   titleContainer: {
-    maxWidth: 550,
-    margin: '0 auto',
-    textAlign: 'center'
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    width: '100%',
+    height: 200,
+    position: 'absolute',
+    top: 30,
   },
-  teamTitle : {
-    position: 'relative',
-    bottom: 240,
-    margin: '0 auto',
+  teamTitle: {
     color: '#fff',
     fontWeight: 'bold',
     fontSize: 30,
     [theme.breakpoints.down('sm')]: {
       fontSize: 20,
-      bottom: 200,
     },
   },
-  teamSubtitle : {
-    position: 'relative',
-    bottom: 233,
-    margin: '0 auto',
+  teamSubtitle: {
     color: '#fff',
     fontWeight: 'bold',
     [theme.breakpoints.down('sm')]: {
       fontSize: 30,
-      bottom: 185,
     },
   },
-  teamTotal : {
-    position: 'relative',
-    bottom: 215,
-    margin: '0 25px',
-    color: '#fff',
-    fontWeight: 'bold',
-    [theme.breakpoints.down('sm')]: {
-      fontSize: 30,
-      bottom: 162,
-      right: 116
-    },
-  },
-  badge :  {
-    position: 'relative',
-    top: '-177px',
-    left: 415,
+  badge: {
     padding: '0 10px',
     backgroundColor: '#00000036',
     color: '#fff',
     fontSize: 16,
     margin: '0 10px',
     [theme.breakpoints.down('sm')]: {
-      left: 65,
-      top: '-155px',
     },
   },
-  countBadge :  {
-    backgroundColor: '#f6d50e',
+  delete: {
+    color: '#d80000',
+    position: 'absolute',
+    left: 0,
+    marginLeft: 21,
+  },
+  countBadge: {
+    backgroundColor: '#ececec',
     color: '#000',
     padding: '20px 0',
+    position: 'relative',
     fontSize: 16,
     width: 100,
-    margin: '0 -50px'
+    transform: 'none',
+    top: 10,
   },
-  resposiveGrid:  {
+  resposiveGrid: {
     [theme.breakpoints.down('sm')]: {
       width: '100%',
+      marginBottom: 20,
     },
   },
 });
-class Team extends Component {
-  constructor(props) {
-    super();
-    this.state = {
-      open: false,
-      selectedPlayer: {},
-      action: '',
-      count: 0,
-      sum: 0
-    };
-  }
 
-  componentDidMount () {
-    const teamID = '5c68961d9400a91f731146e8';
+const Team = (props) => {
+  const { classes } = props;
+
+  const [open, setOpen] = useState(false);
+  const [openTeamModal, setOpenTeamModal] = useState(false);
+  const [gameTime, setGameTime] = useState('');
+  const [action, setAction] = useState('');
+  const [playingCount, setPlayingCount] = useState(0);
+  const [totalFees, setTotalFees] = useState(0);
+  const [totalPlayerCount, setTotalPlayerCount] = useState(0);
+  const [team, setTeam] = useState([]);
+  const [state, setState] = useState({ name: "", payment: "" });
+
+  useEffect(() => {
+    const teamID = '60ad2d8754bbdac34bb3daf1';
     axios.get(`${host.url}/team/${teamID}`)
-    .then(response => {
-      const count = this.getCount(response.data.players);
-      const totalCount = this.getTotalCount(response.data.players);
+      .then(response => {
+        const playerCount = response.data.players.filter((obj) => obj.playing === true).length;
+        const totalPlayerCount = response.data.players.length;
 
-      let paid = 0;
-      for (let index = 0; index < response.data.players.length; index++) {
-        paid += +response.data.players[index].payment;
-      }      
-      this.setState({   
-          team: response.data,
-          count,
-          totalCount,
-          sum: paid
-      })
-    }).catch((err)=>{
-      console.error(err);
-    })
+        let paid = 0;
+        for (let index = 0; index < response.data.players.length; index++) {
+          paid += +response.data.players[index].payment;
+        }
+        setTotalPlayerCount(totalPlayerCount)
+        setTeam(response.data);
+        setPlayingCount(playerCount);
+        setTotalFees(paid);
+      });
+  }, []);
+
+
+  const openModal = (type, playerData) => {
+    const { name, payment, playing, _id } = playerData;
+    setState(prevState => ({
+      ...prevState,
+      _id,
+      name,
+      payment,
+      playing,
+    }));
+    setOpen(true);
+    setAction(type);
   }
 
-  handleToggle = player_id => () => {
-    const { team } = this.state;
+  const handleToggle = (player_id) => {
     const updatePlayer = team.players.map(player => {
-    const newPlayer = Object.assign({}, player);
+      const newPlayer = Object.assign({}, player);
       if (newPlayer._id === player_id) {
-        const updatedStatus = newPlayer.playing ? false : true;
-        newPlayer.playing =  updatedStatus;
+        const updatedStatus = !newPlayer.playing;
+        newPlayer.playing = updatedStatus;
       }
       return newPlayer;
     });
     team.players = updatePlayer;
-
-    const count = this.getCount(team.players);
-
-    this.setState({   
-      team,
-      count
-    });
+    const playerCount = team.players.filter((obj) => obj.playing === true).length;
+    setPlayingCount(playerCount);
+    setTeam(team);
 
     const selectedPlayer = team.players.filter(obj => {
       return obj._id === player_id
     })
-   
+
     axios.put(`${host.url}/player/${team._id}`, {
       playerid: selectedPlayer[0]._id,
       name: selectedPlayer[0].name,
@@ -194,209 +190,210 @@ class Team extends Component {
     });
   };
 
-  openModal = (type, oData) => {
-    if (oData == null){
-      oData = {
-        name: '',
-        payment: ''
-      }
-      this.setState({ 
-        open: true,
-        selectedPlayer: oData,
-        action: 'create',
-       });
-    } else {
-      this.setState({ 
-        open: true,
-        selectedPlayer: oData,
-        action: 'edit',
-       });
-    }
-  }
-
-  handleClose = () => {
-    this.setState({ open: false });
-  };
-
-  createPlayer = () => {
-    const {team, selectedPlayer} = this.state;
-    axios.post(`${host.url}/player/${team._id}`, {
-      name: selectedPlayer.name,
-      playing: false,
-      payment: selectedPlayer.payment || '0',
-    }).then(response => {
-      this.setState({   
-          team: response.data,
-          open: false
-      });
-    }).catch((err)=>{
-      console.error(err);
-    });
-  }
-
-  updatePlayer = () => {
-    const { team, selectedPlayer } = this.state;
+  const updatePlayer = () => {
     axios.put(`${host.url}/player/${team._id}`, {
-      playerid: selectedPlayer._id,
-      name: selectedPlayer.name,
-      playing: selectedPlayer.playing,
-      payment: selectedPlayer.payment,
+      playerid: state._id,
+      name: state.name,
+      playing: state.playing,
+      payment: state.payment,
     }).then(response => {
-      this.setState({   
-          team: response.data,
-          open: false
-      });
-    }).catch((err)=>{
-      console.error(err);
+      setTeam(response.data);
+      setOpen(false);
     });
   }
 
-  handlePlayerChange = () => event => {
-    const eventType = event.target.value;
-    const eventName = event.target.name;
-    this.setState(prevState => ({
-      selectedPlayer: {
-          ...prevState.selectedPlayer,
-          [eventName]: eventType
-      }
-    }))
+  const createPlayer = () => {
+    axios.post(`${host.url}/player/${team._id}`, {
+      name: state.name,
+      playing: false,
+      payment: state.payment || '0',
+    }).then(response => {
+      setTeam(response.data);
+      setOpen(false);
+    });
+  }
+
+  const deletePlayer = (_id) => {
+    axios.delete(`${host.url}/player/${team._id}`, {
+      data: _id,
+    });
+  }
+
+  const updateTeam = () => {
+    axios.put(`${host.url}/team/60ad2d8754bbdac34bb3daf1`, {
+      time: gameTime,
+    });
+    handleTeamModalClose();
+  }
+
+  const handlePlayerChange = (e) => {
+    const { name, value } = e.target;
+    setState(prevState => ({
+      ...prevState,
+      [name]: value
+    }));
+  }
+
+  const handleTeamChange = (e) => {
+    const { value } = e.target;
+    setGameTime(value);
+  }
+
+  const handleClose = () => {
+    setOpen(false);
   };
 
-  getCount = (players) => {
-    return players.filter((obj) => obj.playing === true).length;
-  }
+  const handleTeamModalClose = () => {
+    setOpenTeamModal(false);
+  };
 
-  getTotalCount = (players) => {
-    return players.length;
-  }
-
-  
-  render () {
-    const { team, selectedPlayer, action, count, sum, totalCount } = this.state;
-    const { classes } = this.props;
-
-    return (
-      <React.Fragment>
-        <Header />
-        {
-          team ? 
+  return (
+    <>
+      <div className={classes.header}></div>
+      {
+        team.players ?
+          <>
             <Grid container>
               <div className={classes.titleContainer}>
-                <Typography component="h2" variant="h1" gutterBottom className={classes.teamTitle}>
-                  {team.teamName} 
-                </Typography>
-                <Typography component="h2" variant="h4" gutterBottom className={classes.teamSubtitle}>
+                <Typography
+                  component="h2"
+                  variant="h4"
+                  gutterBottom
+                  className={classes.teamSubtitle}
+                  onClick={() => setOpenTeamModal(true)}
+                >
                   {team.time}
                 </Typography>
-                <Badge className={classes.teamTotal} badgeContent={`${count} of ${totalCount}`} color="primary" showZero={true}
+                <Chip label={`$${totalFees}`} className={classes.badge} />
+                <Badge badgeContent={`${playingCount} of ${totalPlayerCount}`} color="primary" showZero={true}
                   classes={{
-                    badge: classes.countBadge, 
+                    badge: classes.countBadge,
                   }}>
-                  <PlayingIcon />
                 </Badge>
-                <Chip label={`$${sum}`} className={classes.badge} />
               </div>
-              <Fab aria-label="Edit" className={classes.editButton} 
-                   onClick={()=>{this.openModal('editPlayer')}}>
+              <Fab aria-label="Edit" className={classes.editButton}
+                onClick={() => { openModal('create', { name: '', payment: '' }) }}>
                 <AddIcon />
               </Fab>
-              <Grid item sm={12} className={classes.resposiveGrid}>
+            </Grid>
+            <Grid item sm={12} className={classes.resposiveGrid}>
               <Paper className={classes.paperRoot}>
                 <List>
                   {team.players.map(player => (
-                    <ListItem key={player._id} button 
-                              onClick={()=>{this.openModal('editPlayer',player)}}>
+                    <ListItem key={player._id} button
+                      onClick={() => openModal('edit', player)}>
                       <ListItemAvatar>
-                      <Avatar className={player.playing ? classes.avatarActive : classes.avatarPasive}>
-                        <PlayingIcon />
-                      </Avatar>
+                        <Avatar className={player.playing ? classes.avatarActive : classes.avatarPasive}>
+                          <PlayingIcon />
+                        </Avatar>
                       </ListItemAvatar>
-                      <ListItemText primary={player.name} 
-                      secondary={
-                        player.payment >= 40 ? <span>Paid ${player.payment}</span>  : 
-                        <span className={classes.noPayment}>Paid ${player.payment}</span>
-                      }
+                      <ListItemText primary={player.name}
+                        secondary={
+                          player.payment >= 40 ? <span>Paid ${player.payment}</span> :
+                            <span className={classes.noPayment}>Paid ${player.payment}</span>
+                        }
                       />
                       <ListItemSecondaryAction>
                         <FormControlLabel
                           control={
                             <Checkbox
                               checked={player.playing}
-                              onChange={this.handleToggle(player._id)}
+                              onChange={() => handleToggle(player._id)}
                               color="primary"
                             />
                           }
-                          label="Playing"
                         />
                       </ListItemSecondaryAction>
                     </ListItem>
                   ))}
                 </List>
               </Paper>
-              </Grid>
-              <Dialog
-                  open={this.state.open}
-                  onClose={this.handleClose}
-                  aria-labelledby="form-dialog-title"
-                  fullWidth
-                >
-                  <DialogTitle id="form-dialog-title">{action} Player</DialogTitle>
-                  <DialogContent>
-                    <TextField
-                        id="outlined-full-width"
-                        label="Player Name"
-                        name="name"
-                        placeholder="Maybe Ronaldo"
-                        fullWidth
-                        value={selectedPlayer.name}
-                        onChange={this.handlePlayerChange(selectedPlayer.name)}
-                        margin="normal"
-                        variant="outlined"
-                        InputLabelProps={{
-                          shrink: true,
-                        }}
-                      />
-                      <TextField
-                        id="outlined-full-width"
-                        label="Player Payment"
-                        name="payment"
-                        placeholder="Payment"
-                        fullWidth
-                        value={selectedPlayer.payment}
-                        onChange={this.handlePlayerChange(selectedPlayer.payment)}
-                        margin="normal"
-                        variant="outlined"
-                        InputLabelProps={{
-                          shrink: true,
-                        }}
-                      />
-                  </DialogContent>
-                  <DialogActions>
-                    <Button onClick={this.handleClose} color="primary">
-                      Cancel
-                    </Button>
-                      {
-                        action === 'create' ? 
-                          <Button onClick={this.createPlayer} color="primary">
-                            Save
-                          </Button> : 
-                          <Button onClick={this.updatePlayer} color="primary">
-                            Save
-                          </Button>
-                      }
-                    </DialogActions>
-                </Dialog>
             </Grid>
-          :  
-            <LinearProgress />
-        }
-      </React.Fragment>
-    );
-  }
-}
+          </>
+          : <div className={classes.loader}><CircularProgress size={50} /></div>
+      }
+      <Dialog
+        open={open}
+        onClose={handleClose}
+        aria-labelledby="form-dialog-title"
+        fullWidth
+      >
+        <DialogTitle id="form-dialog-title">{action} Player</DialogTitle>
+        <DialogContent>
+          <TextField
+            id="outlined-full-width"
+            label="Player Name"
+            name="name"
+            placeholder="Maybe Ronaldo"
+            fullWidth
+            value={state.name}
+            onChange={handlePlayerChange}
+            margin="normal"
+            variant="outlined"
+            InputLabelProps={{
+              shrink: true,
+            }}
+          />
+          <TextField
+            id="outlined-full-width"
+            label="Player Payment"
+            name="payment"
+            placeholder="Payment"
+            fullWidth
+            value={state.payment}
+            onChange={handlePlayerChange}
+            margin="normal"
+            variant="outlined"
+            InputLabelProps={{
+              shrink: true,
+            }}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Delete className={classes.delete} onClick={() => deletePlayer(state._id)} />
+          <Button onClick={handleClose} color="primary">Cancel</Button>
+          {
+            action === 'create' ?
+              <Button onClick={createPlayer} color="primary">Save</Button> :
+              <Button onClick={updatePlayer} color="primary">Save</Button>
+          }
+        </DialogActions>
+      </Dialog>
 
-Team.propTypes = {
-  classes: PropTypes.object.isRequired,
-};
+      <Dialog
+        open={openTeamModal}
+        onClose={handleTeamModalClose}
+        aria-labelledby="form-dialog-title"
+        fullWidth
+      >
+        <DialogTitle id="form-dialog-title">Update Team</DialogTitle>
+        <DialogContent>
+          <TextField
+            id="outlined-full-width"
+            label="Game Time"
+            name="time"
+            placeholder="Maybe 7:00pm"
+            fullWidth
+            value={gameTime}
+            onChange={handleTeamChange}
+            margin="normal"
+            variant="outlined"
+            InputLabelProps={{
+              shrink: true,
+            }}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleTeamModalClose} color="primary">
+            Cancel
+            </Button>
+          <Button onClick={updateTeam} color="primary">
+            Save
+            </Button>
+        </DialogActions>
+      </Dialog>
+    </>
+  );
+}
 
 export default withStyles(styles)(Team);

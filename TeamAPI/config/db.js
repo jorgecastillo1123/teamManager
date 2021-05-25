@@ -15,4 +15,4 @@ mongoose.connect(dbURI, options).then(
   }
 );
 
-require("../models/Teams");
+require("../models/Team");

@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+mongoose.set('useFindAndModify', false);
 const Schema = mongoose.Schema;
 
 const TeamSchema = new Schema({
@@ -6,27 +7,16 @@ const TeamSchema = new Schema({
     type: String,
     required: true
   },
-  leagueName: {
-    type: String,
-    required: true
-  },
-  day: {
-    type: String,
-    required: true
-  },
-  nextGame: {
-    type: String,
-  },
   time: {
     type: String,
   },
   players: [{
     playerid: String,
-    name: String, 
+    name: String,
     playing: Boolean,
     payment: Number
   }],
 });
 
-module.exports = mongoose.model("Teams", TeamSchema);
+module.exports = mongoose.model("Team", TeamSchema);
 
